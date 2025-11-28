@@ -1,8 +1,11 @@
+# adc value (adc.read_u16())
 m_ntc = 248.92133110058072
 c_ntc = 214.0849277324533
 
+# adc value as voltage
+m_ntc = 0.01254368127379865
+c_ntc = 0.010788199979193289
+
+# adc value as voltage
 m_pot = 0.04500000000000011
 c_pot = 1.5164285714285715
-
-pot values in volts
-ntc values in adc.read_u16() units
