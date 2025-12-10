@@ -25,7 +25,7 @@ I2C_NUM_ROWS = 2
 I2C_NUM_COLS = 16
 
 i2c = I2C(0, sda=machine.Pin(0), scl=machine.Pin(1), freq=400000)
-lcd = I2cLcd(i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
+#lcd = I2cLcd(i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
 
 temp = ADC(Pin(27))
 adc = ADC(Pin(26))
@@ -260,8 +260,8 @@ def calibrate(pin):
 	print("Button Pressed!")
 	global zero_point
 	zero_point = read_average_voltage(30, 20)
-	lcd.clear()
-	lcd.putstr("NOLLAUS TEHTY")
+	#lcd.clear()
+	#lcd.putstr("NOLLAUS TEHTY")
 	time.sleep(1.5)
 
 
@@ -274,7 +274,7 @@ def run_main(o):
 	while True:
 		if check_for_reset(): reset_config()
 		data = read_data()
-		if not (t:=t+1)%20 and o.get('url'):
+		if not (t:=t+1)%5 and o.get('url'):
 			print(data)
 			# TODO: trigger
 			send(o['url'], data)
@@ -284,7 +284,7 @@ def run_main(o):
 
 # Execution starts
 
-lcd.clear()
+#lcd.clear()
 
 if config_found():
 	o = read_config()
