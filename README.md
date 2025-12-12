@@ -1,7 +1,7 @@
 # iotemb
 IoT &amp; embedded systems
 
-##Käyttöohje:
+## Käyttöohje:
 - Lataa main.py picoon ja käynnistä
 - Kirjaudu PicoConfig WLAN verkkoyhteyspisteeseen
 - Avaa web-selaimella picon IP (konsoliin tulostuu SSID, salasana ja IP-osoite)
