@@ -15,6 +15,82 @@ from lcd_api import LcdApi
 from pico_i2c_lcd import I2cLcd
 
 
+class DummyLCD:
+	def clear(self): return None
+	def move_to(self,x,y): return None
+	def putstr(self,s): print('* '+s)
+
+
+class Sensor:
+	def __init__(self, adc):
+		self.adc = adc
+		self.val = None # initial value
+
+	def read(self, samples=30, delay=20):
+		total = 0
+		for _ in range(samples):
+			total += self.adc.read_u16()
+			time.sleep_ms(delay)
+		return total / samples
+
+
+def voltage_to_height(voltage):
+	#TODO: move a,b,zero_point into the class
+	if zero_point is None:
+		height = a * voltage + b
+	else:
+		delta_v = voltage - zero_point
+		height = delta_v * a
+	return round(height, 1)
+
+class HeightSensor(Sensor):
+	def __init__(self, adc):
+		super().__init__(adc)
+
+	def __str__(self):
+		return f'{self.val:2.1f} cm'
+
+	def read(self):
+		avg_voltage = super().read() * 3.3 / 65535
+		h = voltage_to_height(avg_voltage)
+		self.val = h
+		return h
+
+
+class HeightSensorTrig(Sensor):
+	def __init__(self, adc):
+		super().__init__(adc)
+
+	def __str__(self):
+		return ['lo','mid','hi'][self.val or 0]
+
+	def read(self):
+		# TODO calibration for hardcoded values
+		h = super().read()
+		if h < 20000: h = 0
+		elif h < 37000: h = 1
+		else: h = 2
+		self.val = h
+		return h
+
+
+class TempSensor(Sensor):
+	def __init__(self, adc):
+		super().__init__(adc)
+
+	def __str__(self):
+		return f'{self.val:.1f} C' #°C
+
+	def read(self):
+		v = super().read()
+		v = (v-13792.101)/728.057
+		self.val = v
+		return v
+		#100k
+		#m,c=728.0569845666805 13792.101305896282
+
+
+
 CONFIG_FILE = 'config.json'
 AP_SSID = "PicoConfig"
 AP_PASSWORD = "salasana"
@@ -25,10 +101,11 @@ I2C_NUM_ROWS = 2
 I2C_NUM_COLS = 16
 
 i2c = I2C(0, sda=machine.Pin(0), scl=machine.Pin(1), freq=400000)
-#lcd = I2cLcd(i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
-
-temp = ADC(Pin(27))
-adc = ADC(Pin(26))
+lcd = I2cLcd(i2c, I2C_ADDR, I2C_NUM_ROWS, I2C_NUM_COLS)
+#lcd = DummyLCD()
+heightsensor = HeightSensor( ADC(Pin(26)) )
+#heightsensor = HeightSensorTrig( ADC(Pin(28)) )
+tempsensor = TempSensor( ADC(Pin(27)) )
 button = Pin(15, Pin.IN, Pin.PULL_UP)
 
 #KALIBROINTI
@@ -201,90 +278,48 @@ def run_ap():
 
 
 
-# Sensor reading
-
-def val2temp(v):
-	return (v-13792.101)/728.057
-#100k
-#m,c=728.0569845666805 13792.101305896282
-
-def read_avg_val(samples, delay):
-	total = 0
-	for _ in range(samples):
-		total += temp.read_u16()
-		time.sleep_ms(delay)
-	return total / samples
-
-def read_average_voltage(samples, delay):
-	total = 0
-	for _ in range(samples):
-		total += adc.read_u16()
-		time.sleep_ms(delay)
-	return total / samples * 3.3 / 65535
-
-def voltage_to_height(voltage):
-	if zero_point is None:
-		height = a * voltage + b
-	else:
-		delta_v = voltage - zero_point
-		height = delta_v * a
-	return round(height, 1)
-
-def read_data():
-	avg_voltage = read_average_voltage(30, 20)
-	height = voltage_to_height(avg_voltage)
-
-	#lcd_write(height,avg_voltage)
-	#return height
-	t = read_avg_val(30,20)
-	tstr = f'{val2temp(t):.2f} C'#°C'
-	hstr = f'{height:.2f} cm'
-	return '   '.join([hstr,tstr])
-
-
-
 # LCD
 
-def lcd_write(height,avg_voltage):
+def lcd_write(height,temp):
 	lcd.clear()
 	lcd.move_to(0, 0)
-	lcd.putstr(f"Height: {height:2.1f}cm")
+	lcd.putstr(f"Height: {height}")
 	lcd.move_to(0, 1)
-	lcd.putstr(f"V: {avg_voltage:5.2f} V")
+	lcd.putstr(f'Temp: {temp}')
 
 
 
 # Calibrate button event handler
 
 def calibrate(pin):
-	print("Button Pressed!")
 	global zero_point
-	zero_point = read_average_voltage(30, 20)
-	#lcd.clear()
-	#lcd.putstr("NOLLAUS TEHTY")
+	zero_point = heightsensor.read()
+	lcd.clear()
+	lcd.putstr("NOLLAUS TEHTY")
 	time.sleep(1.5)
 
 
 
 def run_main(o):
-	t = -1
 	# Attach the interrupt to the button's falling edge
 	button.irq(trigger=Pin.IRQ_FALLING, handler=calibrate)
 	# Main loop
 	while True:
 		if check_for_reset(): reset_config()
-		data = read_data()
-		if not (t:=t+1)%5 and o.get('url'):
-			print(data)
-			# TODO: trigger
+		prevheight = heightsensor.val
+		height = heightsensor.read()
+		temp = tempsensor.read()
+		lcd_write(str(heightsensor), str(tempsensor))
+		if (prevheight != height) and o.get('url'):
+			# Trigger notification
+			data = str(heightsensor) +'   '+ str(tempsensor)
 			send(o['url'], data)
-			if t>=10000: t = 0
 
 
 
 # Execution starts
 
-#lcd.clear()
+lcd.clear()
 
 if config_found():
 	o = read_config()
