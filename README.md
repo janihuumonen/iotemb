@@ -1,7 +1,8 @@
 # iotemb
 IoT &amp; embedded systems
 
-## Käyttöohje:
+## Vedenkorkeuden ja lämpötilan mittauslaite
+### Käyttöohje:
 - Lataa main.py picoon ja käynnistä
 - Kirjaudu PicoConfig WLAN verkkoyhteyspisteeseen
 - Avaa web-selaimella picon IP (konsoliin tulostuu SSID, salasana ja IP-osoite)
