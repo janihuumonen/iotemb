@@ -1,12 +1,12 @@
 # iotemb
 IoT &amp; embedded systems
 
-Kï¿½yttï¿½ohje:
-	-Lataa main.py picoon ja kï¿½ynnistï¿½
-	-Kirjaudu PicoConfig WLAN verkkoyhteyspisteeseen
-	-Avaa web-selaimella picon IP (konsoliin tulostuu SSID, salasana ja IP-osoite)
-	-Anna oma WLAN SSID, salasana ja halutessa ntfy-palvelimen URL
-	-Pico boottaa, jonka jï¿½lkeen kirjautuu annettuun WLAN verkkoon ja alkaa lï¿½hettï¿½ï¿½ ntfy-viestejï¿½
-	-Paina nappia asettaaksesi korkeuden nollapisteen
-	-Pitï¿½mï¿½llï¿½ picon bootsel-nappia hetken pohjassa, pico unohtaa annetut asetukset ja palaa "tehdasasetuksiin"(AP-moodi)
-	-Kï¿½ynnissï¿½ ollessa nï¿½ytï¿½llï¿½ nï¿½kyy korkeus ja lï¿½mpï¿½tila arvot
+##Käyttöohje:
+- Lataa main.py picoon ja käynnistä
+- Kirjaudu PicoConfig WLAN verkkoyhteyspisteeseen
+- Avaa web-selaimella picon IP (konsoliin tulostuu SSID, salasana ja IP-osoite)
+- Anna oma WLAN SSID, salasana ja halutessa ntfy-palvelimen URL
+- Pico boottaa, jonka jälkeen kirjautuu annettuun WLAN verkkoon ja alkaa lähettää ntfy-viestejä
+- Paina nappia asettaaksesi korkeuden nollapisteen
+- Pitämällä picon bootsel-nappia hetken pohjassa, pico unohtaa annetut asetukset ja palaa "tehdasasetuksiin"(AP-moodi)
+- Käynnissä ollessa näytöllä näkyy korkeus ja lämpötila arvot
